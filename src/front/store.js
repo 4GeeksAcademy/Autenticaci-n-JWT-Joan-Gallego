@@ -1,38 +1,37 @@
-export const initialStore=()=>{
-  return{
-    message: null,
-    todos: [
-      {
-        id: 1,
-        title: "Make the bed",
-        background: null,
-      },
-      {
-        id: 2,
-        title: "Do my homework",
-        background: null,
-      }
-    ]
-  }
-}
+const getState = ({ getStore, setStore }) => {
+    return {
+        store: {
+            token: localStorage.getItem("token") || null
+        },
+        actions: {
+            login: async (email, password) => {
+                const res = await fetch("/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password }),
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    localStorage.setItem("token", data.token);
+                    setStore({ token: data.token });
+                    return true;
+                }
+                return false;
+            },
+            logout: () => {
+                localStorage.removeItem("token");
+                setStore({ token: null });
+            },
+            signup: async (email, password) => {
+                const res = await fetch("/signup", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password }),
+                });
+                return res.ok;
+            }
+        }
+    };
+};
 
-export default function storeReducer(store, action = {}) {
-  switch(action.type){
-    case 'set_hello':
-      return {
-        ...store,
-        message: action.payload
-      };
-      
-    case 'add_task':
-
-      const { id,  color } = action.payload
-
-      return {
-        ...store,
-        todos: store.todos.map((todo) => (todo.id === id ? { ...todo, background: color } : todo))
-      };
-    default:
-      throw Error('Unknown action.');
-  }    
-}
+export default getState;
